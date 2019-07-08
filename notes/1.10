@@ -1,0 +1,9 @@
+p7
+benefit of CISC: better instruction density, e.g. cmovge
+
+p10
+prevent giving an empty pointer
+
+p31
+jump table: "goto *jt[index]"
+convert control stream into data stream

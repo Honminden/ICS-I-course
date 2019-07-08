@@ -1,0 +1,52 @@
+should pass phase_defused first
+the 4th input is 6 21 DrEvil
+
+func7
+if %rdi == 0
+  %eax = 0xffffffff
+  return
+else
+  %edx = (%rdi)
+  if %edx > %esi
+    %rdi = (%rdi + 0x8)
+    func7
+    %eax += %eax
+    return
+  else
+    %eax = 0
+    if %eax == %esi
+      return
+    else
+      %rdi = (%rdi + 0x10)
+      func7
+      %eax = 2*%rax + 1
+      return
+
+
+trans.
+
+func7(x, y)
+if x == 0
+  return -1
+else
+  if (x) > y
+    return 2 * func7((x + 0x8), y)
+  else if (x) == y
+    return 0
+  else
+    return 2 * func7((x + 0x10), y) + 1
+
+x is n1
+y is the long int in string , y <= 0x3e8 = 1000
+
+binary tree (left: +0x8, right: +0x10)
+                0x24
+        /                 \
+      0x8                 0x32
+     /   \               /    \
+   0x6   0x16         0x2d    0x6b
+   / \    / \         / \      / \
+0x1 0x7 0x14 0x23 0x28 0x2f 0x63 0x3e9
+
+func7 returns 1
+so y = 0x32 = 50

@@ -1,0 +1,84 @@
+%rsp + 0x30 0x34 0x38 0x3c 0x40 0x44
+
+%rsi = %r13 = %r12 = %rsp + 0x30
+
+%rbp = %r13
+
+%r14d = 0
+%rbp = %r13
+%eax = (%r13) - 1
+
+while %eax <= 5
+  // six nums are all unique
+  while %r14d++ != 6
+    %ebx = %r14d
+    do
+      %rax = %ebx
+      %eax = (%rsp + 0x30 + 4 * %rax)
+      if %eax == (%rbp) -> explode_bomb()
+      %ebx++
+    while %ebx <= 5
+
+    %r13 += 4
+    %rbp = %r13
+    %eax = (%r13) - 1
+  // %r13 = %rbp = %rsp + 0x44, %eax = (%rsp + 0x44) - 1
+
+  %rcx = %rsp + 0x48
+  %edx = 0x7
+  do
+    %eax = %edx - (%r12)
+    (%r12) = %eax
+    %r12 += 4
+  while %r12 != %rcx
+  // each num = 7 - num
+
+  %rsi = 0
+  do
+    %ecx = (%rsp + 0x30 + %rsi)
+    %eax = 1
+    %rdx = 0x555555758320
+    if %ecx > 1
+      do
+        %rdx = (%rdx + 8)
+      while %eax++ != %ecx
+    (%rsp + 2 * %rsi) = %rdx
+    %rsi += 4
+  while %rsi != 0x18
+  // %rsp + 0x00 ~ 0x28 stored 6 longs
+  /** %ecx = 
+    * 1: 0x55758320: 0x00000163;
+    * 2: 0x55758330: 0x0000014b;
+    * 3: 0x55758340: 0x0000015f;
+    * 4: 0x55758350: 0x00000051;
+    * 5: 0x55758360: 0x000001a0;
+    * 6: 0x55758200: 0x0000028c;
+  */
+
+  %rbx = (%rsp)
+  %rax = %rsp
+  %rsi = %rsp + 0x28
+  %rcx = %rbx
+  do
+    %rdx = (%rax + 0x8)
+    (%rcx + 0x8) = %rdx
+    %rax += 0x8
+    %rcx = %rdx
+  while %rax != %rsi
+  // nodes sorted
+    
+  (%rdx + 0x8) = 0
+  %ebp = 5 // useless?
+  while true
+    %rax = (%rbx + 0x8) // next node
+    if (%rbx) < (%rax) -> explode_bomb()
+    if (%rbx) = (%rax)
+      break
+    %rbx = (%rbx + 0x8)
+    %ebp--
+
+  return
+explode_bomb()
+
+651324
+126453

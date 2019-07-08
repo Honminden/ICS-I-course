@@ -1,0 +1,53 @@
+input x, y
+%edi, %esi, %edx = x, 0, 14
+func4 return = 0x15 = 21
+y == 0x15 = 21
+
+func4
+%eax = %edx
+%eax -= %esi
+%ebx = %eax
+%ebx >>= 31(logical)
+%ebx += %eax
+%ebx >>= 1(arithmetical)
+%ebx += %esi
+if %ebx > %edi
+  %edx = %rbx - 1
+  func4 // recur
+  %ebx += %eax
+  %eax = %ebx
+  return
+else if %ebx < %edi
+  %esi = %rbx + 1
+  func4 // recur
+  %ebx += %eax
+  %eax = %ebx
+  return
+else
+  %eax = %ebx
+  return
+
+
+trans.
+
+input x, y
+if func4(x, 0, 14) == 21 && y == 21
+  return
+else
+  explode_bomb()
+
+func4(a, b, c)
+n = (c + b) / 2
+if n != a
+  if n > a
+    n += func4(a, b, n - 1)
+  else
+    n += func4(a, n + 1, c)
+return n
+
+x <= 15
+a 0 14 ---7
+a 0 6 ---10
+a 4 6 ---15
+a 6 6 ---21
+x = 6

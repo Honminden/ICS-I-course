@@ -1,0 +1,25 @@
+if (%rsp) == 0 && 0x4(%rsp) == 1
+  %rbx = %rsp
+  %rbp = 0x10(%rsp)
+  %eax = 0x4(%rbx)
+  %eax += (%rbx)
+  if %eax == 0x8(rbx)
+    %rbx += 0x4
+    if %rbp == %rbx
+      return
+    else
+      %eax = 0x4(rbx)
+      %eax += (%rbx)
+      if %eax == 0x8(rbx)...
+
+[translated]:
+%rbx = %rsp // at the top of stack at first
+do
+  if 0x8(%rbx) == (%rbx) + 0x4(%rbx)
+    // next number
+    %rbx += 0x4
+  else
+    explode_bomb()
+while %rbx != 0x10 // examine for 4 times
+
+answer: 0 1 1 2 3 5
