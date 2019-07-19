@@ -1,7 +1,7 @@
 /* 
  * tsh - A tiny shell program with job control
  * 
- * <Put your name and login ID here>
+ * 18302010010 师安祺
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -165,6 +165,50 @@ int main(int argc, char **argv)
 */
 void eval(char *cmdline) 
 {
+    char *argv[MAXARGS];
+    int bg;
+    pid_t pid;
+    sigset_t signal_set;
+
+    bg = parseline(cmdline, argv);
+
+    sigemptyset(&signal_set);
+    sigaddset(&signal_set, SIGCHLD);
+
+    if (argv[0] != NULL && !builtin_cmd(argv))
+    {
+      sigprocmask(SIG_BLOCK, &signal_set, NULL);
+
+      /* child will be executed */
+      if ((pid = fork()) == 0)
+      {
+          sigprocmask(SIG_UNBLOCK, &signal_set, NULL);
+
+          setpgid(0, 0);
+          
+          if (execve(argv[0], argv, environ) < 0)
+          {
+              printf("%s:Command not found.\n", argv[0]);
+              exit(0);
+          }
+      }
+
+      /* add child to job */
+      if (!bg)
+      {
+          addjob(jobs, pid, FG, cmdline);
+      }
+      else
+      {
+          addjob(jobs, pid, BG, cmdline);
+          printf("[%d] (%d) %s", pid2jid(pid), pid, cmdline);
+      }
+      
+      waitfg(pid);
+
+      sigprocmask(SIG_UNBLOCK, &signal_set, NULL);
+    }
+
     return;
 }
 
@@ -231,7 +275,20 @@ int parseline(const char *cmdline, char **argv)
  */
 int builtin_cmd(char **argv) 
 {
-    return 0;     /* not a builtin command */
+    if (!strcmp(argv[0], "quit"))
+        exit(0);
+    else if (!strcmp(argv[0], "jobs"))
+    {
+        listjobs(jobs);
+        return 1;
+    }
+    else if (!strcmp(argv[0], "bg") || !strcmp(argv[0], "fg"))
+    {
+        do_bgfg(argv);
+        return 1;
+    }
+    else
+        return 0;     /* not a builtin command */
 }
 
 /* 
@@ -239,6 +296,15 @@ int builtin_cmd(char **argv)
  */
 void do_bgfg(char **argv) 
 {
+    if (!strcmp(argv[0], "bg"))
+    {
+        /* do bg */
+    }
+    else if (!strcmp(argv[0], "fg"))
+    {
+        /* do fg */
+    }
+    
     return;
 }
 
@@ -247,6 +313,13 @@ void do_bgfg(char **argv)
  */
 void waitfg(pid_t pid)
 {
+    sigset_t prev;
+
+    sigemptyset(&prev);
+
+    while(getjobpid(jobs, pid) && getjobpid(jobs, pid)->state == FG)
+        sigsuspend(&prev);
+
     return;
 }
 
@@ -263,6 +336,19 @@ void waitfg(pid_t pid)
  */
 void sigchld_handler(int sig) 
 {
+    int status;
+    int pid = waitpid(-1, &status, WUNTRACED | WNOHANG);
+
+    if (pid > 0 && getjobpid(jobs, pid))
+    {
+        struct job_t job = *getjobpid(jobs, pid);
+        if (job.state == FG || job.state == BG)
+        {
+            if (WIFEXITED(status))
+                deletejob(jobs, pid);
+        }
+    }
+
     return;
 }
 
@@ -273,6 +359,14 @@ void sigchld_handler(int sig)
  */
 void sigint_handler(int sig) 
 {
+    int pid = fgpid(jobs);
+
+    if(pid != 0 && !kill(-pid, sig))
+    {
+        printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, sig);
+        deletejob(jobs, pid);
+    }
+
     return;
 }
 
@@ -283,6 +377,13 @@ void sigint_handler(int sig)
  */
 void sigtstp_handler(int sig) 
 {
+    int pid = fgpid(jobs);
+
+    if(pid != 0 && !kill(-pid, sig))
+    {
+        printf("Job [%d] (%d) stopped by signal %d\n", pid2jid(pid), pid, sig);
+        getjobpid(jobs, pid)->state = ST;
+    }
     return;
 }
 
