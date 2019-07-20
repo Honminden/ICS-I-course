@@ -1,0 +1,8 @@
+#
+# trace14.txt - Simple error handling
+#
+tsh> ./bogus
+./bogus:Command not found.
+tsh> ./myspin 4 &
+[1] (33119) ./myspin 4 &
+tsh> fg
